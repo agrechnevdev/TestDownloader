@@ -49,24 +49,11 @@ public class MainActivity extends Activity {
         }
         if (file.exists()) file.delete();
 
-        h = new Handler() {
-            public void handleMessage(Message msg) {
-                pd.setIndeterminate(false);
-                if (pd.getProgress() < pd.getMax()) {
-                    pd.incrementProgressBy(msg.what);
-                    pd.incrementSecondaryProgressBy(msg.what);
 
-                } else {
-                    pd.dismiss();
-                }
-            }
-        };
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DownloadTask as = new DownloadTask();
-                as.execute();
 
                 pd = new ProgressDialog(MainActivity.this);
                 pd.setTitle("Загрузка");
@@ -75,6 +62,22 @@ public class MainActivity extends Activity {
                 pd.setIndeterminate(true);
                 pd.setMax(100);
                 pd.show();
+
+                h = new Handler() {
+                    public void handleMessage(Message msg) {
+                        pd.setIndeterminate(false);
+                        if (pd.getProgress() < pd.getMax()) {
+                            pd.incrementProgressBy(msg.what);
+                            pd.incrementSecondaryProgressBy(msg.what);
+
+                        } else {
+                            pd.dismiss();
+                        }
+                    }
+                };
+
+                DownloadTask as = new DownloadTask();
+                as.execute();
 
 
             }
@@ -122,7 +125,6 @@ public class MainActivity extends Activity {
                     byte[] bytes = new byte[5*1024];
                     while ((read = is.read(bytes)) != -1) {
                         outputStream.write(bytes, 0, read);
-                        Thread.sleep(300);
                         progress = counter*100/10248;
                         counter++;
                         msg = h.obtainMessage(1,progress , 0);
