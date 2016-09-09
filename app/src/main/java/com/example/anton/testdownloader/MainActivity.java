@@ -1,8 +1,12 @@
 package com.example.anton.testdownloader;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -48,54 +52,67 @@ public class MainActivity extends Activity {
             file = new File(root + "/video");
         }
         if (file.exists()) file.delete();
+    }
 
 
+    public void onClick(View v) {
+        if (android.os.Build.VERSION.SDK_INT == 23) {
+            showDialog(1);
+        }
+        else {
+            startDownload();
+        }
+    }
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    public void startDownload(){
+        pd = new ProgressDialog(MainActivity.this);
+        pd.setTitle(R.string.pd_title);
+        pd.setMessage(file.getAbsolutePath());
+        pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        pd.setIndeterminate(true);
+        pd.setMax(100);
+        pd.show();
 
-                pd = new ProgressDialog(MainActivity.this);
-                pd.setTitle("Загрузка");
-                pd.setMessage("сохранение в:  " + file.getAbsolutePath());
-                pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                pd.setIndeterminate(true);
-                pd.setMax(100);
-                pd.show();
-
-                h = new Handler() {
-                    public void handleMessage(Message msg) {
-                        pd.setIndeterminate(false);
-                        if (pd.getProgress() < pd.getMax()) {
-                            pd.incrementProgressBy(msg.what);
-                            pd.incrementSecondaryProgressBy(msg.what);
-
-                        } else {
-                            pd.dismiss();
-                        }
-                    }
-                };
-
-                DownloadTask as = new DownloadTask();
-                as.execute();
-
-
+        h = new Handler() {
+            public void handleMessage(Message msg) {
+                pd.setIndeterminate(false);
+                if (pd.getProgress() < pd.getMax()) {
+                    pd.incrementProgressBy(msg.what);
+                    pd.incrementSecondaryProgressBy(msg.what);
+                } else {
+                    pd.dismiss();
+                }
             }
-        });
+        };
+
+        DownloadTask as = new DownloadTask();
+        as.execute();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    protected Dialog onCreateDialog(int id) {
+        if (id == 1) {
+            AlertDialog.Builder adb = new AlertDialog.Builder(this);
+            adb.setTitle(R.string.adb_title);
+            adb.setMessage(R.string.adb_message);
+            adb.setIcon(android.R.drawable.ic_dialog_info);
+            adb.setPositiveButton(R.string.yes, myClickListener);
+            adb.setNegativeButton(R.string.no, myClickListener);
+            return adb.create();
+        }
+        return super.onCreateDialog(id);
     }
 
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-    }
-
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
+    DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                case Dialog.BUTTON_POSITIVE:
+                    startDownload();
+                    break;
+                case Dialog.BUTTON_NEGATIVE:
+                    break;
+            }
+        }
+    };
 
     class DownloadTask extends AsyncTask<Void, Void, Void> {
 
@@ -118,16 +135,16 @@ public class MainActivity extends Activity {
 
                     int progress = 0;
                     int counter = 0;
-                    msg = h.obtainMessage(1, progress , 0);
+                    msg = h.obtainMessage(1, progress, 0);
                     h.sendMessage(msg);
 
                     int read = 0;
-                    byte[] bytes = new byte[5*1024];
+                    byte[] bytes = new byte[5 * 1024];
                     while ((read = is.read(bytes)) != -1) {
                         outputStream.write(bytes, 0, read);
-                        progress = counter*100/10248;
+                        progress = counter * 100 / 10248;
                         counter++;
-                        msg = h.obtainMessage(1,progress , 0);
+                        msg = h.obtainMessage(1, progress, 0);
                         h.sendMessage(msg);
                     }
 

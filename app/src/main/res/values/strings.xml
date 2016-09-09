@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">TestDownloader</string>
     <string name="action_settings">Settings</string>
+    <string name="pd_title">Загрузка</string>
+    <string name="adb_title">Файловая система</string>
+    <string name="adb_message">Разрешить доступ к файловой системе?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
 </resources>
